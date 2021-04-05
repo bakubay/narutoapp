@@ -113,8 +113,6 @@ function addTreesRandomly({
     { probability: probTreeCenter, position_index: 2 },
     { probability: probTreeRight, position_index: 3 },
     { probability: probTreeRightMost, position_index: 4 },
-    { probability: probTreeRightTOleft, position_index: 4 },
-    
   ];
   shuffle(trees);
 
