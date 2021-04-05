@@ -105,7 +105,6 @@ function addTreesRandomly({
   probTreeCenter = 0.5,
   probTreeRight = 0.5,
   probTreeRightMost = 0.5,
-  probTreeRightTOleft = 0.5,
   maxNumberTrees = 4
 } = {}) {
   var trees = [
