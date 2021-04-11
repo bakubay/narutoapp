@@ -29,14 +29,15 @@ function movePlayerTo(position_index) {
   
   // Disable control when player is dead
   if(!isPlayerDead){
-    document.getElementById('dead_player').setAttribute('position', {x: 0, y: -10, z: 0});
+    document.getElementById('dead_player').setAttribute('position', {x: 0, y: -10, z: 0.5});
     document.getElementById('player').setAttribute('position', position);
     
   }
   else{
     pos = document.getElementById('player').getAttribute('position');
-    pos.y = 0.25;
-    document.getElementById('player').setAttribute('position', {x: pos.x, y: -10, z: 0});
+    pos.y = 0.1;
+    pos.z = 0.3;
+    document.getElementById('player').setAttribute('position', {x: pos.x, y: -10, z: 0.5});
     document.getElementById('dead_player').setAttribute('position', pos);
   }
 }
@@ -49,15 +50,20 @@ function setupControls() {
       tick: function (time, timeDelta) {
         var rotation = this.el.object3D.rotation;
         
-        console.log(rotation.y)
-
-        if      (rotation.y > 0.25 )                      movePlayerTo(0);
-        else if (rotation.y < 0.25 && rotation.y > 0.05)   movePlayerTo(1);
-        else if (rotation.y < -0.25)                      movePlayerTo(4);
-        else if (rotation.y < -0.05 && rotation.y > -0.25) movePlayerTo(3);
-        else                                              movePlayerTo(2);
+        //console.log(rotation.y)
+        // if      (rotation.y > 0.25 )                      movePlayerTo(0);
+        // else if (rotation.y < 0.25 && rotation.y > 0.05)   movePlayerTo(1);
+        // else if (rotation.y < -0.25)                      movePlayerTo(4);
+        // else if (rotation.y < -0.05 && rotation.y > -0.25) movePlayerTo(3);
+        // else                                              movePlayerTo(2);
       }
     })
+
+    document.addEventListener('keypress', (event)=>{
+      if(event.key === ','){if(player_position_index > 0)movePlayerTo(player_position_index-1)}
+      if(event.key === '.'){if(player_position_index < 4)movePlayerTo(player_position_index+1)}
+    })
+
 }
 
 /*********
@@ -121,6 +127,11 @@ function addTreesRandomly({
   probTreeRightMost = 0.5,
   maxNumberTrees = 4
 } = {}) {
+  clearInterval(treeTimer);
+  var interval = 1000-score*5;
+  if(interval < 400)
+    interval = 400;
+  treeTimer = setInterval(addTreesRandomly, interval);
   var trees = [
     { probability: probTreeLeftMost, position_index: 0 },
     { probability: probTreeLeft, position_index: 1 },
@@ -147,7 +158,7 @@ function addTreesRandomly({
   return numberOfTreesAdded;
 }
 
-function addTreesRandomlyLoop({ intervalLength = 500 } = {}) {
+function addTreesRandomlyLoop({ intervalLength = 1000 } = {}) {
   treeTimer = setInterval(addTreesRandomly, intervalLength);
 }
 
@@ -256,9 +267,17 @@ function setupAllMenus() {
   menuContainer = document.getElementById('menu-container');
   startButton   = document.getElementById('start-button');
   restartButton = document.getElementById('restart-button');
+  movePlayerTo(2);
   document.getElementById('best-score').setAttribute('value', localStorage.getItem('bestScore')??0);
   showStartMenu();  
-  
+  document.addEventListener('keypress', (event)=>{
+    if(event.key === ' ' && !isGameRunning){
+      if(isPlayerDead)
+        restartGame();
+      
+      startGame();
+    }
+  })
   startButton.addEventListener('click', startGame);
 
   restartButton.addEventListener('click', startGame);
@@ -356,12 +375,13 @@ function startGame() {
 
 function restartGame() {
   isPlayerDead = false;
+  movePlayerTo(2);
 }
 
 function gameOver() {
   isGameRunning = false;
   isPlayerDead = true;
-
+  movePlayerTo(2);
   showGameOverMenu();
   teardownTrees();
   teardownScore();
