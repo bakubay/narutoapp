@@ -4,6 +4,7 @@ const POSITION_X_CENTER = 0;
 const POSITION_X_RIGHT = 0.25;
 const POSITION_X_RIGHTMOST = 0.5;
 
+
 /************
  * CONTROLS *
  ************/
@@ -18,32 +19,45 @@ var player_position_index = 1;
 function movePlayerTo(position_index) {
   player_position_index = position_index;
   
-  var position = {x: 0, y: 0, z: 0}
+  var position = {x: 0, y: 0, z: 0};
+
   if      (position_index == 0) position.x = POSITION_X_LEFTMOST;
   else if (position_index == 1) position.x = POSITION_X_LEFT;
   else if (position_index == 2) position.x = POSITION_X_CENTER;
   else if (position_index == 3) position.x = POSITION_X_RIGHT;
   else                          position.x = POSITION_X_RIGHTMOST;
-  document.getElementById('player').setAttribute('position', position);
+  
+  // Disable control when player is dead
+  if(!isPlayerDead){
+    document.getElementById('dead_player').setAttribute('position', {x: 0, y: -10, z: 0});
+    document.getElementById('player').setAttribute('position', position);
+    
+  }
+  else{
+    pos = document.getElementById('player').getAttribute('position');
+    pos.y = 0.25;
+    document.getElementById('player').setAttribute('position', {x: pos.x, y: -10, z: 0});
+    document.getElementById('dead_player').setAttribute('position', pos);
+  }
 }
 
 /**
  * Determine how `movePlayerTo` will be fired. Use camera's rotation.
  **/
 function setupControls() {
-  AFRAME.registerComponent('lane-controls', {
-    tick: function (time, timeDelta) {
-      var rotation = this.el.object3D.rotation;
-      
-      console.log(rotation.y)
+    AFRAME.registerComponent('lane-controls', {
+      tick: function (time, timeDelta) {
+        var rotation = this.el.object3D.rotation;
+        
+        console.log(rotation.y)
 
-      if      (rotation.y > 0.25 )                      movePlayerTo(0);
-      else if (rotation.y < 0.25 && rotation.y > 0.05)   movePlayerTo(1);
-      else if (rotation.y < -0.25)                      movePlayerTo(4);
-      else if (rotation.y < -0.05 && rotation.y > -0.25) movePlayerTo(3);
-      else                                              movePlayerTo(2);
-    }
-  })
+        if      (rotation.y > 0.25 )                      movePlayerTo(0);
+        else if (rotation.y < 0.25 && rotation.y > 0.05)   movePlayerTo(1);
+        else if (rotation.y < -0.25)                      movePlayerTo(4);
+        else if (rotation.y < -0.05 && rotation.y > -0.25) movePlayerTo(3);
+        else                                              movePlayerTo(2);
+      }
+    })
 }
 
 /*********
@@ -177,7 +191,6 @@ function setupCollisions() {
 /*********
  * SCORE *
  *********/
-
 var score;
 var countedTrees;
 var gameOverScoreDisplay;
@@ -185,24 +198,32 @@ var scoreDisplay;
 
 function setupScore() {
   score = 0;
+  localStorage.setItem('bestScore', localStorage.getItem('bestScore')??0);
   countedTrees = new Set();
   scoreDisplay = document.getElementById('score');
+  bestScoreDisplay = document.getElementById('best-score');
   gameOverScoreDisplay = document.getElementById('game-score');
 }
 
 function teardownScore() {
   scoreDisplay.setAttribute('value', '');
+  bestScoreDisplay.setAttribute('value', localStorage.getItem('bestScore'));
   gameOverScoreDisplay.setAttribute('value', score);
 }
+//bestScore = localStorage.getItem('bestScore', localStorage.getItem('bestScore')??0);
 
 function addScoreForTree(tree_id) {
   if (countedTrees.has(tree_id)) return;
   score += 1;
+  if(score > localStorage.getItem('bestScore') )
+    localStorage.setItem('bestScore', score);
   countedTrees.add(tree_id);
 }
 
 function updateScoreDisplay() {
   scoreDisplay.setAttribute('value', score);
+  //bestScore = localStorage.setItem('bestScore', localStorage.getItem('bestScore')??0);
+  bestScoreDisplay.setAttribute('value', localStorage.getItem('bestScore') );
   
   if (mobileCheck()) {
     mirrorVR.notify('score', score);
@@ -216,6 +237,7 @@ function updateScoreDisplay() {
 var menuStart;
 var menuGameOver;
 var menuContainer;
+var isPlayerDead = false;
 var isGameRunning = false;
 var startButton;
 var restartButton;
@@ -234,12 +256,14 @@ function setupAllMenus() {
   menuContainer = document.getElementById('menu-container');
   startButton   = document.getElementById('start-button');
   restartButton = document.getElementById('restart-button');
-  
+  document.getElementById('best-score').setAttribute('value', localStorage.getItem('bestScore')??0);
   showStartMenu();  
   
   startButton.addEventListener('click', startGame);
-  
+
   restartButton.addEventListener('click', startGame);
+
+  restartButton.addEventListener('click', restartGame);
 
 }
 
@@ -330,8 +354,13 @@ function startGame() {
   }
 }
 
+function restartGame() {
+  isPlayerDead = false;
+}
+
 function gameOver() {
   isGameRunning = false;
+  isPlayerDead = true;
 
   showGameOverMenu();
   teardownTrees();
