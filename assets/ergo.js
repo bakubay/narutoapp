@@ -51,18 +51,18 @@ function setupControls() {
         var rotation = this.el.object3D.rotation;
         
         //console.log(rotation.y)
-        // if      (rotation.y > 0.25 )                      movePlayerTo(0);
-        // else if (rotation.y < 0.25 && rotation.y > 0.05)   movePlayerTo(1);
-        // else if (rotation.y < -0.25)                      movePlayerTo(4);
-        // else if (rotation.y < -0.05 && rotation.y > -0.25) movePlayerTo(3);
-        // else                                              movePlayerTo(2);
+        if      (rotation.y > 0.25 )                      movePlayerTo(0);
+        else if (rotation.y < 0.25 && rotation.y > 0.05)   movePlayerTo(1);
+        else if (rotation.y < -0.25)                      movePlayerTo(4);
+        else if (rotation.y < -0.05 && rotation.y > -0.25) movePlayerTo(3);
+        else                                              movePlayerTo(2);
       }
     })
 
-    document.addEventListener('keypress', (event)=>{
-      if(event.key === ','){if(player_position_index > 0)movePlayerTo(player_position_index-1)}
-      if(event.key === '.'){if(player_position_index < 4)movePlayerTo(player_position_index+1)}
-    })
+    // document.addEventListener('keypress', (event)=>{
+    //   if(event.key === ','){if(player_position_index > 0)movePlayerTo(player_position_index-1)}
+    //   if(event.key === '.'){if(player_position_index < 4)movePlayerTo(player_position_index+1)}
+    // })
 
 }
 
