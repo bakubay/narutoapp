@@ -170,34 +170,33 @@ const POSITION_Z_OUT_OF_SIGHT = 1;
 const POSITION_Z_LINE_START = 0.6;
 const POSITION_Z_LINE_END = 0.7;
 
-function setupCollisions() {
-  AFRAME.registerComponent('player', {
-    tick: function() {
-      document.querySelectorAll('.tree').forEach(function(tree) {
-        var position = tree.getAttribute('position');
-        var tree_position_index = tree.getAttribute('data-tree-position-index');
-        var tree_id = tree.getAttribute('id');
+AFRAME.registerComponent('player', {
+  tick: function() {
+    document.querySelectorAll('.tree').forEach(function(tree) {
+      var position = tree.getAttribute('position');
+      var tree_position_index = tree.getAttribute('data-tree-position-index');
+      var tree_id = tree.getAttribute('id');
 
-        if (position.z > POSITION_Z_OUT_OF_SIGHT) {
-          removeTree(tree);
-        }
+      if (position.z > POSITION_Z_OUT_OF_SIGHT) {
+        removeTree(tree);
+      }
 
-        if (!isGameRunning) return;
+      if (!isGameRunning) return;
 
-        if (POSITION_Z_LINE_START < position.z && position.z < POSITION_Z_LINE_END
-            && tree_position_index == player_position_index) {
-          gameOver();
-        }
+      if (POSITION_Z_LINE_START < position.z && position.z < POSITION_Z_LINE_END
+          && tree_position_index == player_position_index) {
+        gameOver();
+      }
+      
+      if (position.z > POSITION_Z_LINE_END) {
+        addScoreForTree(tree_id);
+        updateScoreDisplay();  
         
-        if (position.z > POSITION_Z_LINE_END) {
-          addScoreForTree(tree_id);
-          updateScoreDisplay();  
-          
-        }
-      })
-    }
-  })
-}
+      }
+    })
+  }
+})
+
 
 /*********
  * SCORE *
@@ -349,35 +348,6 @@ function setupMirrorVR() {
  * GAME *
  ********/
 
-var isGameRunning = false;
-
-setupControls();  // TODO: AFRAME.registerComponent has to occur before window.onload?
-setupCollisions();
-
-window.onload = function() {
-  setupAllMenus();
-  setupScore();
-  setupTrees();
-  setupMirrorVR();
-}
-
-function startGame() {
-  if (isGameRunning) return;
-  isGameRunning = true;
-  setupScore();
-  addTreesRandomlyLoop();
-  hideAllMenus();
-  
-  if (mobileCheck()) {
-    mirrorVR.notify('startGame', {})
-  }
-}
-
-function restartGame() {
-  isPlayerDead = false;
-  movePlayerTo(2);
-}
-
 function gameOver() {
   isGameRunning = false;
   isPlayerDead = true;
@@ -390,6 +360,38 @@ function gameOver() {
     mirrorVR.notify('gameOver', {});
   }
 }
+
+function startGame() {
+  if (isGameRunning) return;
+  isGameRunning = true;
+
+  hideAllMenus();
+  setupScore();
+  updateScoreDisplay();
+  addTreesRandomlyLoop();
+
+  if (mobileCheck()) {
+    mirrorVR.notify('startGame', {})
+  }
+}
+
+setupControls();  // TODO: AFRAME.registerComponent has to occur before window.onload?
+
+window.onload = function() {
+  setupMirrorVR();
+  setupAllMenus();
+  setupScore();
+  setupTrees();
+}
+
+
+
+function restartGame() {
+  isPlayerDead = false;
+  movePlayerTo(2);
+}
+
+
 
 /*************
  * UTILITIES *
